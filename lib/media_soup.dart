@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:app/socket.dart';
 import 'package:flutter/material.dart';
 import 'package:mediasoup_client_flutter/mediasoup_client_flutter.dart';
 
@@ -28,7 +29,7 @@ class MediaSoupService {
     }
   }
 
-  Future<void> createTransport({required Map data}) async {
+  void createTransport({required Map data}) {
     try {
       List<IceCandidate> iceCandidates = [];
       String id = data['id'];
@@ -39,7 +40,14 @@ class MediaSoupService {
       data['iceCandidates'].forEach((element) {
         iceCandidates.add(IceCandidate.fromMap(element));
       });
-      log('$data');
+
+      //logs
+      log('id: $id');
+      log('dtlsParameters: $dtlsParameters');
+      log('iceParameters: $iceParameters');
+      iceCandidates.forEach((element) {
+        log('iceCandidates: $element');
+      });
 
       // Create a transport.
       producerTransport = device!.createSendTransport(
@@ -47,13 +55,23 @@ class MediaSoupService {
           dtlsParameters: dtlsParameters,
           iceParameters: iceParameters,
           iceCandidates: iceCandidates);
-      log('transport created');
+
+      log('transport created ID: ${producerTransport!.id}');
 
       producerTransport!.on('connect', (data) {
-        log('$data');
+        log('TRANSPORT CONNECTED');
+        SocketService.emit('transaction', data);
+      });
+      producerTransport!.on('failed', (data) {
+        log('TRANSPORT FAILED');
+        SocketService.emit('transaction', data);
+      });
+      producerTransport!.on('connect', (data) {
+        log('TRANSPORT CONNECTED');
+        SocketService.emit('transaction', data);
       });
       producerTransport!.on('produce', (data) {
-        log('$data');
+        log('ON-PRODUCE::::  $data');
       });
       producerTransport!.on('connectionstatechange', (state) {
         log('$data');

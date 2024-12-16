@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketService {
@@ -22,6 +24,8 @@ class SocketService {
   }
 
   static void on(String event, Function(dynamic) callback) {
+    // ignore: unnecessary_string_interpolations
+    log('$event');
     !socket.connected ? init() : null;
     socket.off(event);
     socket.on(event, callback);
